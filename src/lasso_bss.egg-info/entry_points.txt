@@ -1,0 +1,2 @@
+[console_scripts]
+lasso-bss = lasso_with_bss.cli:main
