@@ -65,7 +65,6 @@ def bootstrap_lasso(
     X = df_clean[X_cols].to_numpy()
     y = df_clean[target].to_numpy()
 
-    # 🔹 新增：标准化目标变量 y
     y_scaler = StandardScaler()
     y = y_scaler.fit_transform(y.reshape(-1, 1)).ravel()
 
@@ -179,3 +178,4 @@ def bootstrap_lasso(
         plt.close()
 
     return result
+
