@@ -6,6 +6,8 @@ import json
 from .io import load_folder_as_df
 from .lasso import bootstrap_lasso
 
+
+
 def main():
     p = argparse.ArgumentParser(
         description="Bootstrap Lasso stability analysis (MAE vs alpha curves + effect-size exports)."
@@ -29,11 +31,44 @@ def main():
                    help="Path to save coefficient summary CSV ('' to disable)")
     p.add_argument("--report-json", type=str, default="report.json",
                    help="Path to save a small JSON report")
+    p.add_argument("--explicit-drop", action="store_true",
+                   help="Enable explicit column dropping (default: False)")
 
     args = p.parse_args()
 
     # load data
     df = load_folder_as_df(args.data, args.pattern)
+
+    # ----------------------------------------------------------
+    # Auto-drop columns based on pattern rules + explicit rules
+    # ----------------------------------------------------------
+    drop_config = {}
+
+    # Explicit columns to delete
+    explicit_drop = {
+        "soilType_cls5_p",
+        "soilType_mean",
+        "Forest_mean",
+        'forest_cls1_p',
+        'soiltype_cls4_p'
+
+    }
+
+    for col in df.columns:
+        col_low = col.lower()
+
+        # rule 1: drop *_msr, *_shdi, *_lsi
+        if (
+                col_low.endswith("_msr") or
+                col_low.endswith("_shdi") or
+                col_low.endswith("_lsi")
+        ):
+            drop_config[col] = False
+        # rule 2: explicit column drop
+        elif col in explicit_drop:
+            drop_config[col] = args.explicit_drop
+        else:
+            drop_config[col] = False
 
     # alpha grid
     alpha_grid = None
@@ -57,6 +92,7 @@ def main():
         plot_path=plot_path,
         save_coef_matrix_csv=coef_mat_csv,
         save_coef_summary_csv=coef_sum_csv,
+        drop_config=drop_config,
     )
 
     # small JSON summary (no big arrays)
