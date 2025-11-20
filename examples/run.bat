@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 pushd "%~dp0.."
 
-set "DATADIR=examples\all_data"
+set "DATADIR=examples\data"
 set "OUTROOT=examples\outputs"
 
 if not exist "%OUTROOT%" mkdir "%OUTROOT%"
@@ -58,3 +58,4 @@ for %%F in ("%DATADIR%\*.csv") do (
 echo.
 echo All done!
 popd
+
