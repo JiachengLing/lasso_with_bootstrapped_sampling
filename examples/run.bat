@@ -1,48 +1,60 @@
-@echo on
+@echo off
 setlocal enabledelayedexpansion
 
-rem ===== go to repo root =====
-pushd %~dp0..
+pushd "%~dp0.."
 
-set OUTDIR=examples\outputs
-if not exist "%OUTDIR%" mkdir "%OUTDIR%"
+set "DATADIR=examples\all_data"
+set "OUTROOT=examples\outputs"
 
-set TARGET=y
+if not exist "%OUTROOT%" mkdir "%OUTROOT%"
 
-rem ===== prefer console entry, fallback to python -m =====
-where lasso-bss >nul 2>&1
-if %errorlevel%==0 (
-  set CMD=lasso-bss
-) else (
-  echo [Info] 'lasso-bss' not found, fallback to 'python -m lasso_with_bss.cli'
-  set CMD=python -m lasso_with_bss.cli
-)
+set "CMD=python -m lasso_with_bss.cli"
 
-rem ===== run: stdout -> file, stderr -> console (so tqdm shows) =====
-%CMD% ^
-  --data examples\data ^
-  --target %TARGET% ^
-  --n-boot 50 ^
-  --n-folds 5 ^
-  --n-alphas 50 ^
-  --seed 42 ^
-  --plot-path "%OUTDIR%\alpha_mae_curves.png" ^
-  --coef-matrix-csv "%OUTDIR%\coef_matrix.csv" ^
-  --coef-summary-csv "%OUTDIR%\coef_summary.csv" ^
-  --report-json "%OUTDIR%\report.json" ^
-  1> "%OUTDIR%\_last_stdout.txt"
+echo Running double-mode Lasso for all datasets...
+echo.
 
-if errorlevel 1 (
-  echo.
-  echo [ERROR] Failed. See stdout log at %OUTDIR%\_last_stdout.txt
-  popd
-  pause
-  exit /b 1
+for %%F in ("%DATADIR%\*.csv") do (
+    set "FILE=%%~nxF"
+    set "BASENAME=%%~nF"
+
+    REM ==========================
+    REM ====== Mode E (drop) =====
+    REM ==========================
+    set "OUTDIR=%OUTROOT%\!BASENAME!_E"
+    if not exist "!OUTDIR!" mkdir "!OUTDIR!"
+
+    %CMD% ^
+        --data "%DATADIR%" ^
+        --pattern "!FILE!" ^
+        --target y ^
+        --explicit-drop ^
+        --n-boot 1000 ^
+        --n-folds 10 ^
+        --n-alphas 50 ^
+        --plot-path "!OUTDIR!\alpha_mae.png" ^
+        --coef-matrix-csv "!OUTDIR!\coef_matrix.csv" ^
+        --coef-summary-csv "!OUTDIR!\coef_summary.csv" ^
+        --report-json "!OUTDIR!\report.json"
+
+    REM ==========================
+    REM ====== Mode G (keep) =====
+    REM ==========================
+    set "OUTDIR=%OUTROOT%\!BASENAME!_G"
+    if not exist "!OUTDIR!" mkdir "!OUTDIR!"
+
+    %CMD% ^
+        --data "%DATADIR%" ^
+        --pattern "!FILE!" ^
+        --target y ^
+        --n-boot 1000 ^
+        --n-folds 10 ^
+        --n-alphas 50 ^
+        --plot-path "!OUTDIR!\alpha_mae.png" ^
+        --coef-matrix-csv "!OUTDIR!\coef_matrix.csv" ^
+        --coef-summary-csv "!OUTDIR!\coef_summary.csv" ^
+        --report-json "!OUTDIR!\report.json"
 )
 
 echo.
-echo Done. See %OUTDIR%
-type "%OUTDIR%\_last_stdout.txt"
-
+echo All done!
 popd
-pause
