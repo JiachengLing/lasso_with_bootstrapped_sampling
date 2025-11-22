@@ -51,6 +51,7 @@ def main():
         "forest_mean",
         'forest_cls1_p',
         'soiltype_cls4_p'
+
     }
 
     for col in df.columns:
@@ -62,10 +63,10 @@ def main():
                 col_low.endswith("_shdi") or
                 col_low.endswith("_lsi")
         ):
-            drop_config[col] = False
+            drop_config[col] = args.explicit_drop
         # rule 2: explicit column drop
         elif col in explicit_drop:
-            drop_config[col] = args.explicit_drop
+            drop_config[col] = True
         else:
             drop_config[col] = False
 
@@ -111,4 +112,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
