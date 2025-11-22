@@ -46,12 +46,11 @@ def main():
 
     # Explicit columns to delete
     explicit_drop = {
-        "soilType_cls5_p",
-        "soilType_mean",
-        "Forest_mean",
+        "soiltype_cls5_p",
+        "soiltype_mean",
+        "forest_mean",
         'forest_cls1_p',
         'soiltype_cls4_p'
-
     }
 
     for col in df.columns:
@@ -112,3 +111,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
